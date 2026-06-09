@@ -1,30 +1,100 @@
-# 🚀 Deploy Automatizado: ArgoCD + K3s na AWS
+# 🚀 Deploy Automatizado: ArgoCD + K3s
 
-Este repositório contém os manifestos e as configurações de infraestrutura utilizadas para implementar uma esteira de **GitOps** completa, realizando o deploy automatizado de uma aplicação.
-
-O objetivo principal deste projeto foi focar na engenharia de infraestrutura, automação e práticas de entrega contínua (CD).
+Este repositório contém os manifests e configurações usados para demonstrar uma esteira GitOps usando ArgoCD sobre um cluster K3s (ex.: rodando em instâncias na AWS). O foco é infraestrutura, automação e entrega contínua.
 
 ---
 
-## 🛠️ Tecnologias Utilizadas
+## 🛠️ Tecnologias
 
-* **ArgoCD:** Ferramenta declarativa de GitOps para Kubernetes.
-* **K3s:** Distribuição leve do Kubernetes, ideal para otimização de recursos.
-* **AWS:** Provedor de nuvem utilizado para hospedar o cluster [mencione se usou EC2, instâncias puras, etc.].
-* **Kubernetes:** Orquestração dos containers da aplicação.
-* **[Adicione outra ferramenta se usou, ex: GitHub Actions, Terraform, Docker]**
-
----
-
-## 🏗️ O que foi desenvolvido?
-
-1. **Estrutura de GitOps:** Configuração do ArgoCD para monitorar este repositório e garantir que o estado do cluster na AWS seja sempre idêntico ao definido no Git.
-2. **Orquestração com K3s:** Criação e configuração de um cluster Kubernetes leve e performático na nuvem.
-3. **Gerenciamento de Recursos:** Escrita de manifestos declarativos (Deployments, Services, Ingress, etc.) para a aplicação.
-
-> 💡 **Nota sobre a aplicação:** Como o foco absoluto deste projeto foi a arquitetura de DevOps, automação e resiliência da infraestrutura, a API utilizada no backend é um fork de um projeto existente, servindo como base real de testes para validar o pipeline.
+- **ArgoCD** — GitOps declarativo para Kubernetes.
+- **K3s** — Kubernetes leve, adequado para ambientes de teste e edge.
+- **AWS** — Provedor de infraestrutura (ex.: EC2) usado para hospedar o cluster.
+- **kubectl / argocd CLI** — ferramentas de linha de comando para operar o cluster e ArgoCD.
 
 ---
 
-## 👥 Como testar / Contribuir
-[Escreva uma linha rápida aqui, ex: "Os manifestos principais do ArgoCD estão na pasta /k8s ou /argo-apps."]
+## Estrutura do repositório
+
+- `k8s/` — manifests e kustomization usados pelo ArgoCD ou aplicáveis diretamente ao cluster.
+	- `api-deployment.yaml` — Deployment da API.
+	- `api-service.yaml` — Service expondo a API.
+	- `argocd-app.yaml` — App manifest do ArgoCD (aponta para este repositório ou paths internos).
+	- `kustomization.yaml` — Kustomize para montar os manifests.
+	- `namespace.yaml` — Namespace dedicado para a aplicação.
+	- `postgres-deployment.yaml` — Deployment do Postgres (ex.: para testes).
+	- `postgres-pvc.yaml` — PersistentVolumeClaim para Postgres.
+	- `postgres-service.yaml` — Service do Postgres.
+	- `secret.yaml.example` — Exemplo de secret para variáveis sensíveis (NUNCA com valores reais neste repositório).
+
+---
+
+## Pré-requisitos
+
+- Acesso ao cluster Kubernetes (kubeconfig configurado).
+- `kubectl` instalado.
+- `argocd` CLI instalado (opcional, para operações via CLI).
+- Credenciais AWS configuradas, se for usar infra na AWS.
+
+---
+
+## Como usar
+
+1. Ajuste as configurações e segredos locais: copie `k8s/secret.yaml.example` para `k8s/secret.yaml` e preencha os valores sensíveis localmente ou use um gerenciador de segredos (SealedSecrets / External Secrets / SSM / Secrets Manager).
+
+2. Aplicar manifests diretamente (modo manual / teste):
+
+```powershell
+kubectl apply -f k8s/namespace.yaml
+kubectl apply -k k8s
+```
+
+3. Aplicar via ArgoCD (fluxo GitOps):
+
+- Garanta que o ArgoCD esteja instalado no cluster.
+- Crie ou atualize um `Application` que aponte para este repositório/path. Exemplo mínimo (já existe em `k8s/argocd-app.yaml`):
+
+```powershell
+kubectl apply -f k8s/argocd-app.yaml
+```
+
+Depois, acesse a UI do ArgoCD ou use `argocd app sync <nome-da-app>` para sincronizar.
+
+---
+
+## Personalização
+
+- Para trocar a imagem da aplicação, edite `k8s/api-deployment.yaml` ou utilize `kustomization.yaml` com `images:`.
+- Para alterar recursos de infraestrutura (CPU/memória, volumes), edite os manifests correspondentes em `k8s/`.
+
+---
+
+## Segurança e Segredos
+
+- Não comite segredos em texto plano. Use `secret.yaml.example` como template.
+- Recomenda-se integrar com um provedor de segredos (AWS Secrets Manager, SSM Parameter Store, External Secrets, SealedSecrets) para produção.
+
+---
+
+## Testes e validação
+
+- Verifique o estado dos objetos no cluster:
+
+```powershell
+kubectl get pods -n <namespace>
+kubectl describe pod <pod-name> -n <namespace>
+kubectl logs <pod-name> -n <namespace>
+```
+
+- Para ArgoCD:
+
+```powershell
+argocd app list
+argocd app get <nome-da-app>
+argocd app sync <nome-da-app>
+```
+
+---
+
+## Observações
+
+- Este repositório foi criado como exemplo didático/avaliativo para demonstrar práticas de GitOps e automação. Ajustes serão necessários para executar em um ambiente de produção (rede, segurança, backups, monitoramento).
