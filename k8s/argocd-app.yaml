@@ -6,7 +6,7 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://github.com/eduardo-da-silva/registro-atividades-k8s.git
+    repoURL: https://github.com/leonardojr96/registro-atividades-k8s.git
     targetRevision: HEAD
     path: k8s
   destination:
