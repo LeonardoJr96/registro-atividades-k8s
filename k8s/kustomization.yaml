@@ -8,8 +8,8 @@ resources:
 - api-deployment.yaml
 - api-service.yaml
 images:
-- name: eduardosilvasc/registro-atividades-backend
-  newName: eduardosilvasc/registro-atividades-backend
+- name: leonardojr96/registro-atividades-backend
+  newName: leonardojr96/registro-atividades-backend
   newTag: latest
 - name: leonardojr96/registro-atividades-backend
   newTag: cbd5d082ee9433cb4d6adba010afd615585758f5
